@@ -69,9 +69,16 @@
         </section>
 
         <section class="graph-panel">
-            <div class="view-toggle">
-                <button class="toggle-btn active" id="showLeftBtn">Show Left Foot</button>
-                <button class="toggle-btn" id="showRightBtn">Show Right Foot</button>
+            <div class="view-management-bar">
+                <div class="view-toggle">
+                    <button class="toggle-btn active" id="showLeftBtn">Show Left Foot</button>
+                    <button class="toggle-btn" id="showRightBtn">Show Right Foot</button>
+                </div>
+                <div class="navigation-controls">
+                    <button class="btn secondary-btn nav-btn" id="prevFrameBtn" disabled>« Prev</button>
+                    <span id="frameIndicator">Samples: 0 - 0</span>
+                    <button class="btn secondary-btn nav-btn" id="nextFrameBtn" disabled>Next »</button>
+                </div>
             </div>
             <div id="chartViewport"></div>
         </section>
