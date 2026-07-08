@@ -20,32 +20,61 @@
         </div>
     </header>
 
-    <main>
-        <section class="table-container">
-            <h2>Calculated Spatial-Temporal Parameters</h2>
-            <table id="metricsTable">
-                <thead>
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Left Foot (Device 1)</th>
-                        <th>Right Foot (Device 2)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>Step Count</td><td id="l-steps">-</td><td id="r-steps">-</td></tr>
-                    <tr><td>Cadence (steps/min)</td><td id="l-cadence">-</td><td id="r-cadence">-</td></tr>
-                    <tr><td>Stance Time (s)</td><td id="l-stance">-</td><td id="r-stance">-</td></tr>
-                    <tr><td>Walking Duration (s)</td><td id="l-duration">-</td><td id="r-duration">-</td></tr>
-                </tbody>
-            </table>
+    <main class="dashboard-layout">
+        <section class="sidebar-panel">
+            <div class="panel-box">
+                <h2>Interactive Thresholds</h2>
+                <div class="slider-group">
+                    <label for="th1Slider">FSR1 Threshold (Toe): <span id="th1Val">500</span></label>
+                    <input type="range" id="th1Slider" min="0" max="4095" value="500">
+                </div>
+                <div class="slider-group">
+                    <label for="th2Slider">FSR2 Threshold (Heel): <span id="th2Val">500</span></label>
+                    <input type="range" id="th2Slider" min="0" max="4095" value="500">
+                </div>
+                <button class="btn reset-btn" id="resetAutoBtn">Reset to 20% Adaptive</button>
+            </div>
+
+            <div class="panel-box">
+                <h2>Spatial-Temporal Parameters</h2>
+                <table id="metricsTable">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Left Foot</th>
+                            <th>Right Foot</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Step Count</td><td id="l-steps">-</td><td id="r-steps">-</td></tr>
+                        <tr><td>Cadence (steps/min)</td><td id="l-cadence">-</td><td id="r-cadence">-</td></tr>
+                        <tr><td>Stance Time (s)</td><td id="l-stance">-</td><td id="r-stance">-</td></tr>
+                        <tr><td>Foot Contact Time (s)</td><td id="l-contact">-</td><td id="r-contact">-</td></tr>
+                        <tr><td>Heel Contact Time (s)</td><td id="l-h-contact">-</td><td id="r-h-contact">-</td></tr>
+                        <tr><td>Forefoot Contact Time (s)</td><td id="l-ff-contact">-</td><td id="r-ff-contact">-</td></tr>
+                        <tr><td>Walking Duration (s)</td><td id="l-duration">-</td><td id="r-duration">-</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel-box">
+                <h2>Bilateral Summary (Symmetry)</h2>
+                <table id="bilateralTable">
+                    <tbody>
+                        <tr><td>Cadence Symmetry SI (%)</td><td id="si-cadence">-</td></tr>
+                        <tr><td>Stance Symmetry SI (%)</td><td id="si-stance">-</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
-        <section class="view-toggle">
-            <button class="toggle-btn active" id="showLeftBtn">Show Left Foot</button>
-            <button class="toggle-btn" id="showRightBtn">Show Right Foot</button>
+        <section class="graph-panel">
+            <div class="view-toggle">
+                <button class="toggle-btn active" id="showLeftBtn">Show Left Foot</button>
+                <button class="toggle-btn" id="showRightBtn">Show Right Foot</button>
+            </div>
+            <div id="chartViewport"></div>
         </section>
-
-        <section id="chartViewport"></section>
     </main>
 
     <script src="app.js"></script>
