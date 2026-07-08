@@ -1,3 +1,4 @@
+// --- Application Global State Management Architecture ---
 let appState = {
     left: { raw: { time: [], fsr1: [], fsr2: [] }, events: [], phases: [], metrics: {} },
     right: { raw: { time: [], fsr1: [], fsr2: [] }, events: [], phases: [], metrics: {} },
@@ -6,7 +7,7 @@ let appState = {
     isAuto: true
 };
 
-// --- DOM Hooks ---
+// --- DOM Interface Bindings ---
 document.getElementById('csvFileInput').addEventListener('change', handleFileImport);
 document.getElementById('showLeftBtn').addEventListener('click', () => switchView('left'));
 document.getElementById('showRightBtn').addEventListener('click', () => switchView('right'));
@@ -14,14 +15,17 @@ document.getElementById('showRightBtn').addEventListener('click', () => switchVi
 const th1Slider = document.getElementById('th1Slider');
 const th2Slider = document.getElementById('th2Slider');
 
-th1Slider.addEventListener('input', (e) => handleSliderChange('fsr1', parseInt(e.target.value)));
-th2Slider.addEventListener('input', (e) => handleSliderChange('fsr2', parseInt(e.target.value)));
+th1Slider.addEventListener('input', (e) => handleSliderInput('fsr1', parseInt(e.target.value)));
+th2Slider.addEventListener('input', (e) => handleSliderInput('fsr2', parseInt(e.target.value)));
 document.getElementById('resetAutoBtn').addEventListener('click', resetToAdaptive);
 
-function handleSliderChange(type, val) {
+// --- Real-time Handler Executions ---
+function handleSliderInput(type, val) {
     appState.isAuto = false;
     appState.thresholds[type] = val;
     document.getElementById(type === 'fsr1' ? 'th1Val' : 'th2Val').innerText = val;
+    
+    // Execute data transformations and render updates instantly
     recalculatePipeline();
 }
 
@@ -37,11 +41,13 @@ function handleFileImport(e) {
     const reader = new FileReader();
     reader.onload = function(evt) {
         parseCSV(evt.target.result);
+        document.getElementById('fileStatus').innerText = `Active File: ${file.name}`;
         recalculatePipeline();
     };
     reader.readAsText(file);
 }
 
+// --- Data Parsing Core Pipeline ---
 function parseCSV(csvText) {
     const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
@@ -69,6 +75,7 @@ function parseCSV(csvText) {
         }
     }
 
+    // Zero-align structural timelines to seconds relative vector offsets
     ['left', 'right'].forEach(side => {
         const d = appState[side].raw;
         if (d.time.length > 0) {
@@ -78,13 +85,14 @@ function parseCSV(csvText) {
     });
 }
 
+// --- Core Algorithm Recalculation Engine ---
 function recalculatePipeline() {
     if (appState.left.raw.time.length === 0 && appState.right.raw.time.length === 0) return;
 
     if (appState.isAuto) {
-        // Calculate adaptive 20% thresholds from the active side
         const activeData = appState[appState.activeSide].raw;
         const calcAdaptive = (arr) => {
+            if (!arr || arr.length === 0) return 500;
             const min = Math.min(...arr);
             const max = Math.max(...arr);
             return Math.round(min + 0.20 * (max - min));
@@ -92,19 +100,18 @@ function recalculatePipeline() {
         appState.thresholds.fsr1 = calcAdaptive(activeData.fsr1);
         appState.thresholds.fsr2 = calcAdaptive(activeData.fsr2);
 
-        // Update Slider UI positions without triggering listeners
+        // Update Slider DOM Control Elements layout metrics sync
         th1Slider.value = appState.thresholds.fsr1;
         th2Slider.value = appState.thresholds.fsr2;
         document.getElementById('th1Val').innerText = appState.thresholds.fsr1;
         document.getElementById('th2Val').innerText = appState.thresholds.fsr2;
     }
 
-    // Process both streams using current thresholds
     ['left', 'right'].forEach(side => {
         const data = appState[side].raw;
         if (data.time.length === 0) return;
 
-        // 1. Core Event Crossings Logic
+        // 1. Edge-Crossing Analysis Parsing (Event Tracking Module)
         let events = [];
         for (let i = 1; i < data.time.length; i++) {
             if (data.fsr2[i-1] <= appState.thresholds.fsr2 && data.fsr2[i] > appState.thresholds.fsr2) {
@@ -122,7 +129,7 @@ function recalculatePipeline() {
         }
         appState[side].events = events.sort((a, b) => a.time - b.time);
 
-        // 2. Map Categorical Phase States
+        // 2. Continuous State Matrix Labeling Modules
         let phases = [];
         for (let i = 0; i < data.time.length; i++) {
             const h = data.fsr2[i] > appState.thresholds.fsr2;
@@ -131,7 +138,7 @@ function recalculatePipeline() {
         }
         appState[side].phases = phases;
 
-        // 3. Compute Structural Durations
+        // 3. Extract Micro-Temporal Spatial Parameters
         const duration = data.time[data.time.length - 1] - data.time[0];
         const steps = events.filter(e => e.type === 'Heel Strike').length;
         const cadence = duration > 0 ? (steps / duration) * 60.0 : 0;
@@ -162,6 +169,7 @@ function recalculatePipeline() {
     updateUIDisplays();
 }
 
+// --- UI Sync Matrix Data Components ---
 function updateUIDisplays() {
     ['left', 'right'].forEach(side => {
         const m = appState[side].metrics;
@@ -175,7 +183,7 @@ function updateUIDisplays() {
         document.getElementById(`${side.charAt(0)}-duration`).innerText = m.duration.toFixed(2);
     });
 
-    // Calculate Symmetry Indices (SI)
+    // Calculate Bilateral Symmetry Indices (SI)
     const l = appState.left.metrics;
     const r = appState.right.metrics;
     if (l.steps !== undefined && r.steps !== undefined) {
@@ -194,42 +202,70 @@ function switchView(side) {
     recalculatePipeline();
 }
 
+// --- Dynamic Plotly Canvas Rerendering Platform ---
 function renderPlotView() {
     const side = appState.activeSide;
     const data = appState[side].raw;
     if (data.time.length === 0) return;
 
+    // Constrain sample visibility frame bounds for desktop parity tracking operations
     const windowSamples = Math.min(1200, data.time.length);
     const tW = data.time.slice(0, windowSamples);
 
-    const traceToe = { x: tW, y: data.fsr1.slice(0, windowSamples), mode: 'lines', name: 'FSR1 (Toe)', line: { color: '#FF5555' } };
-    const traceHeel = { x: tW, y: data.fsr2.slice(0, windowSamples), mode: 'lines', name: 'FSR2 (Heel)', line: { color: '#FFCC00' } };
+    const traceToe = { 
+        x: tW, y: data.fsr1.slice(0, windowSamples), 
+        mode: 'lines', name: 'FSR1 (Toe)', 
+        line: { color: '#FF5252', width: 2 } 
+    };
+    
+    const traceHeel = { 
+        x: tW, y: data.fsr2.slice(0, windowSamples), 
+        mode: 'lines', name: 'FSR2 (Heel)', 
+        line: { color: '#FFD000', width: 2 } 
+    };
 
     const maxVal = Math.max(...data.fsr1.slice(0, windowSamples), ...data.fsr2.slice(0, windowSamples));
     const windowMaxTime = tW[tW.length - 1];
 
-    // Create horizontal custom threshold lines matching state parameters
+    // Horizontal interactive dynamic threshold lines configuration definitions
     let shapes = [
-        { type: 'line', x0: 0, x1: windowMaxTime, y0: appState.thresholds.fsr1, y1: appState.thresholds.fsr1, line: { color: '#FF5555', width: 1.5, dash: 'dash' } },
-        { type: 'line', x0: 0, x1: windowMaxTime, y0: appState.thresholds.fsr2, y1: appState.thresholds.fsr2, line: { color: '#FFCC00', width: 1.5, dash: 'dash' } }
+        { 
+            type: 'line', x0: 0, x1: windowMaxTime, y0: appState.thresholds.fsr1, y1: appState.thresholds.fsr1, 
+            line: { color: '#FF5252', width: 1.5, dash: 'dash' } 
+        },
+        { 
+            type: 'line', x0: 0, x1: windowMaxTime, y0: appState.thresholds.fsr2, y1: appState.thresholds.fsr2, 
+            line: { color: '#FFD000', width: 1.5, dash: 'dash' } 
+        }
     ];
 
-    // Add vertical event dashes
+    // Vertical spatial segmentation indicators configurations
     appState[side].events.filter(e => e.time <= windowMaxTime).forEach(ev => {
+        let eventColor = '#7F8C8D';
+        if (ev.type === 'Heel Strike') eventColor = '#38E54D';
+        else if (ev.type === 'Toe Off') eventColor = '#00BFFF';
+        
         shapes.push({
-            type: 'line', x0: ev.time, x1: ev.time, y0: 0, y1: maxVal,
-            line: { color: ev.type === 'Heel Strike' ? '#55FF55' : ev.type === 'Toe Off' ? '#00BFFF' : '#777', width: 1, dash: 'dot' }
+            type: 'line', x0: ev.time, x1: ev.time, y0: 0, y1: maxVal * 1.05,
+            line: { color: eventColor, width: 1, dash: 'dot' }
         });
     });
 
     const layout = {
-        title: `${side.toUpperCase()} FOOT Real-Time Analysis Window Viewport`,
-        paper_bgcolor: '#1e1e1e', plot_bgcolor: '#1e1e1e', font: { color: '#ffffff' },
-        xaxis: { title: 'Time (Seconds)', gridcolor: '#2a2a2a' },
-        yaxis: { title: 'Sensor Values', gridcolor: '#2a2a2a' },
+        title: {
+            text: `${side.toUpperCase()} FOOT Signal Performance Window Viewport`,
+            font: { color: '#FFFFFF', size: 16, weight: 'bold' }
+        },
+        paper_bgcolor: '#151D30',
+        plot_bgcolor: '#151D30',
+        font: { color: '#8F9CAE', family: 'system-ui, sans-serif' },
+        xaxis: { title: 'Time Sequence Analysis (Seconds)', gridcolor: '#263554', zeroline: false },
+        yaxis: { title: 'Sensor Quantization Level Units (ADC)', gridcolor: '#263554', zeroline: false },
         shapes: shapes,
-        margin: { t: 50, b: 50, l: 60, r: 20 }
+        margin: { t: 60, b: 60, l: 60, r: 40 },
+        showlegend: true,
+        legend: { font: { color: '#FFFFFF' }, orientation: 'h', x: 0, y: 1.1 }
     };
 
-    Plotly.newPlot('chartViewport', [traceToe, traceHeel], layout, { responsive: true });
+    Plotly.newPlot('chartViewport', [traceToe, traceHeel], layout, { responsive: true, displayModeBar: false });
 }
