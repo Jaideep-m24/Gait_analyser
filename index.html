@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gait Analyzer Web Suite</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-title">
+            <h1>Gait Analyzer Suite</h1>
+            <p id="fileStatus">No CSV File Loaded</p>
+        </div>
+        <div class="controls">
+            <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+            <button class="btn primary-btn" onclick="document.getElementById('csvFileInput').click()">Open CSV</button>
+            <button class="btn secondary-btn" id="exportBtn" disabled>Export Data</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="table-container">
+            <h2>Calculated Spatial-Temporal Parameters</h2>
+            <table id="metricsTable">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Left Foot (Device 1)</th>
+                        <th>Right Foot (Device 2)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Step Count</td><td id="l-steps">-</td><td id="r-steps">-</td></tr>
+                    <tr><td>Cadence (steps/min)</td><td id="l-cadence">-</td><td id="r-cadence">-</td></tr>
+                    <tr><td>Stance Time (s)</td><td id="l-stance">-</td><td id="r-stance">-</td></tr>
+                    <tr><td>Walking Duration (s)</td><td id="l-duration">-</td><td id="r-duration">-</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="view-toggle">
+            <button class="toggle-btn active" id="showLeftBtn">Show Left Foot</button>
+            <button class="toggle-btn" id="showRightBtn">Show Right Foot</button>
+        </section>
+
+        <section id="chartViewport"></section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
